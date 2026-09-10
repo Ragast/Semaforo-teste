@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Semáforo Timer</title>
+<style>
+html,body{margin:0;width:100%;height:100%;font-family:Arial,sans-serif}
+body{display:flex;align-items:center;justify-content:center;color:white;text-align:center;overflow:hidden}
+#state{font-size:28px;font-weight:700}
+#time{font-size:78px;font-weight:700;margin-top:10px}
+#next{font-size:19px;margin-top:2px}
+#sync{position:fixed;left:10px;bottom:10px;width:64px;height:42px;font-size:12px;border:0;border-radius:7px}
+#settings{position:fixed;right:10px;bottom:10px;background:rgba(255,255,255,.25);border:0;border-radius:7px;padding:9px;color:white}
+</style>
+</head>
+<body>
+<div>
+  <div id="state">VERDE</div>
+  <div id="time">01:00</div>
+  <div id="next">até vermelho</div>
+</div>
+<button id="sync">sync</button>
+<button id="settings">tempos</button>
+<script>
+let green=60, red=60, start=Date.now();
+function fmt(s){s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function update(){
+  const cycle=green+red, e=((Date.now()-start)/1000)%cycle;
+  const isGreen=e<green, left=isGreen?green-e:cycle-e;
+  document.body.style.background=isGreen?'#239641':'#cd2d2d';
+  document.getElementById('state').textContent=isGreen?'VERDE':'VERMELHO';
+  document.getElementById('time').textContent=fmt(left);
+  document.getElementById('next').textContent=isGreen?'até vermelho':'até verde';
+}
+document.getElementById('sync').onclick=()=>{start=Date.now();update()};
+document.getElementById('settings').onclick=()=>{
+  const g=prompt('Tempo de VERDE (segundos):',green);
+  if(g!==null && Number(g)>0) green=Number(g);
+  const r=prompt('Tempo de VERMELHO (segundos):',red);
+  if(r!==null && Number(r)>0) red=Number(r);
+  update();
+};
+setInterval(update,200); update();
+</script>
+</body>
+</html>
