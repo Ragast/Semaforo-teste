@@ -1,18 +1,16 @@
 package com.example.semaforotimer
 
-import android.graphics.Color
+import android.app.Activity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.app.Activity
-import java.util.Locale
 
 class MainActivity : Activity() {
 
-    // ALTERA AQUI OS TEMPOS PARA O TEU SEMÁFORO:
+    // TEMPOS DO SEMÁFORO — serão afinados quando medires os tempos reais.
     private val greenSeconds = 60L
     private val redSeconds = 60L
 
@@ -22,6 +20,10 @@ class MainActivity : Activity() {
     private lateinit var countdownText: TextView
     private lateinit var nextText: TextView
     private lateinit var syncButton: Button
+
+    private val prefs by lazy {
+        getSharedPreferences("semaforo", MODE_PRIVATE)
+    }
 
     private var cycleStartMillis: Long = 0L
 
@@ -42,18 +44,28 @@ class MainActivity : Activity() {
         nextText = findViewById(R.id.nextText)
         syncButton = findViewById(R.id.syncButton)
 
-        // Para o primeiro teste, assume-se que a app foi aberta no início de um verde.
-        cycleStartMillis = System.currentTimeMillis()
+        // Recupera a sincronização anterior. Assim, fechar e reabrir
+        // a app não reinicia o ciclo.
+        cycleStartMillis = prefs.getLong("cycleStartMillis", 0L)
+
+        // Primeira utilização: se ainda não houver sincronização,
+        // assume temporariamente que o ciclo começa em verde agora.
+        if (cycleStartMillis == 0L) {
+            cycleStartMillis = System.currentTimeMillis()
+        }
 
         syncButton.setOnClickListener {
-            // Premir "sync" exatamente quando o semáforo fica verde.
+            // Premir "sync" exatamente no instante em que o semáforo
+            // passa para VERDE. A hora fica guardada no telemóvel.
             cycleStartMillis = System.currentTimeMillis()
+            prefs.edit().putLong("cycleStartMillis", cycleStartMillis).apply()
             update()
         }
     }
 
     override fun onResume() {
         super.onResume()
+        update()
         handler.post(ticker)
     }
 
@@ -66,12 +78,18 @@ class MainActivity : Activity() {
         val greenMs = greenSeconds * 1000L
         val redMs = redSeconds * 1000L
         val cycleMs = greenMs + redMs
+
+        // Usa sempre o relógio atual. O ciclo continua mesmo com a app fechada.
         val elapsed = ((System.currentTimeMillis() - cycleStartMillis) % cycleMs + cycleMs) % cycleMs
 
         val green = elapsed < greenMs
         val remaining = if (green) greenMs - elapsed else cycleMs - elapsed
 
-        root.setBackgroundColor(if (green) Color.rgb(35, 150, 65) else Color.rgb(205, 45, 45))
+        root.setBackgroundColor(
+            if (green) android.graphics.Color.rgb(35, 150, 65)
+            else android.graphics.Color.rgb(205, 45, 45)
+        )
+
         stateText.text = if (green) "VERDE" else "VERMELHO"
         countdownText.text = format(remaining)
         nextText.text = if (green) "até vermelho" else "até verde"
@@ -81,6 +99,6 @@ class MainActivity : Activity() {
         val totalSeconds = (ms + 999L) / 1000L
         val minutes = totalSeconds / 60L
         val seconds = totalSeconds % 60L
-        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        return String.format("%02d:%02d", minutes, seconds)
     }
 }
