@@ -7,10 +7,10 @@ import android.os.Looper
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
 import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     // ALTERA AQUI OS TEMPOS PARA O TEU SEMÁFORO:
     private val greenSeconds = 60L
