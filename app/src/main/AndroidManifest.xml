@@ -2,6 +2,8 @@
     <application
         android:theme="@style/AppTheme"
         android:label="Semáforo Timer"
+        android:icon="@drawable/ic_traffic_light"
+        android:roundIcon="@drawable/ic_traffic_light"
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
